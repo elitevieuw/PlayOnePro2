@@ -67,23 +67,4 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-}android {
-    // ... andere config ...
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
-        // Suppress de compatibility check
-        @Suppress("OPT_IN_USAGE")
-        kotlinCompilerExtensionVersion = "1.5.4"
-    }
-
-    // OF voeg dit toe onderaan android block:
-    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs += listOf(
-            "-P",
-            "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
-        )
-    }
 }
-
