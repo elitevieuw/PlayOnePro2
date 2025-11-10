@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Firebase Remote Config Default Values
+  
+  This file contains safe default values for all remote configuration features.
+  These values ensure the app functions properly even when:
+  - The device is offline
+  - Firebase Remote Config fails to fetch
+  - It's the first app launch before any remote values are fetched
+  
+  Format:
+  <defaultsMap>
+      <entry>
+          <key>config_key_name</key>
+          <value>default_value</value>
+      </entry>
+  </defaultsMap>
+-->
+<defaultsMap>
+    <!-- ====== Feature Flags ====== -->
+    
+    <!-- DVR (Digital Video Recording) Feature -->
+    <entry>
+        <key>dvr_enabled</key>
+        <value>false</value>
+    </entry>
+    
+    <!-- New Player UI Feature -->
+    <entry>
+        <key>new_player_ui_enabled</key>
+        <value>false</value>
+    </entry>
+    
+    <!-- Picture-in-Picture Mode -->
+    <entry>
+        <key>pip_mode_enabled</key>
+        <value>true</value>
+    </entry>
+    
+    <!-- Offline Downloads Feature -->
+    <entry>
+        <key>offline_downloads_enabled</key>
+        <value>false</value>
+    </entry>
+    
+    <!-- Live Chat Feature -->
+    <entry>
+        <key>live_chat_enabled</key>
+        <value>false</value>
+    </entry>
+    
+    <!-- ====== A/B Testing Configurations ====== -->
+    
+    <!-- Activation Button Color (for A/B testing) -->
+    <!-- Green (#4CAF50) as default, can be changed to Blue (#2196F3) via Remote Config -->
+    <entry>
+        <key>activation_button_color</key>
+        <value>#4CAF50</value>
+    </entry>
+    
+    <!-- Player Theme (for A/B testing) -->
+    <!-- Options: "dark", "light", "auto" -->
+    <entry>
+        <key>player_theme</key>
+        <value>dark</value>
+    </entry>
+    
+    <!-- ====== App Configurations ====== -->
+    
+    <!-- Maximum video quality -->
+    <entry>
+        <key>max_video_quality</key>
+        <value>1080</value>
+    </entry>
+    
+    <!-- Buffer time in seconds -->
+    <entry>
+        <key>buffer_time_seconds</key>
+        <value>5</value>
+    </entry>
+    
+    <!-- Show ads -->
+    <entry>
+        <key>ads_enabled</key>
+        <value>false</value>
+    </entry>
+    
+    <!-- Minimum app version required (for force updates) -->
+    <entry>
+        <key>minimum_app_version</key>
+        <value>1.0.0</value>
+    </entry>
+    
+    <!-- Welcome message -->
+    <entry>
+        <key>welcome_message</key>
+        <value>Welcome to PlayOnePro2!</value>
+    </entry>
+    
+    <!-- Support URL -->
+    <entry>
+        <key>support_url</key>
+        <value>https://play1pro.com/support</value>
+    </entry>
+    
+    <!-- Feature announcement (JSON format) -->
+    <entry>
+        <key>feature_announcement</key>
+        <value>{"enabled":false,"title":"","message":"","action_url":""}</value>
+    </entry>
+</defaultsMap>
