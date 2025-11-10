@@ -41,7 +41,7 @@ PlayOnePro2 is een universele, multi-platform mediaplayer applicatie ontworpen v
 
 ## Contact
 
-Voor vragen en samenwerking: eliteview@playoneapp.com
+Voor vragen en samenwerking: contact@playoneapp.com
 
 ## License
 
