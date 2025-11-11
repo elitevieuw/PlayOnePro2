@@ -141,13 +141,13 @@ jobs:
           echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
           
       - name: 📦 Download APK artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v6
         with:
           name: release-apk-v${{ steps.version.outputs.version }}
           path: artifacts/apk/
           
       - name: 📦 Download AAB artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v6
         with:
           name: release-aab-v${{ steps.version.outputs.version }}
           path: artifacts/aab/
@@ -212,7 +212,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           
       - name: 📦 Download AAB artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v6
         with:
           name: release-aab-v${{ steps.version.outputs.version }}
           path: artifacts/aab/
