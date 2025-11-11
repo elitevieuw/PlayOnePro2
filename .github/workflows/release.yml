@@ -1,0 +1,262 @@
+name: CD - Continuous Deployment
+
+# Trigger this workflow when a new version tag is pushed (e.g., v1.0.0, v2.1.3)
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+# Prevent concurrent releases
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  # ============================================================================
+  # Build Signed Release Job
+  # ============================================================================
+  build-release:
+    name: 🚀 Build Signed Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: 📦 Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+            
+      - name: 🔐 Grant execute permission for gradlew
+        run: chmod +x gradlew
+        
+      - name: 🔑 Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "Decoding keystore..."
+          echo "$KEYSTORE_BASE64" | base64 --decode > $GITHUB_WORKSPACE/keystore.jks
+          echo "Keystore decoded successfully"
+          
+      - name: 📝 Create keystore.properties
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "storeFile=$GITHUB_WORKSPACE/keystore.jks" > keystore.properties
+          echo "storePassword=$KEYSTORE_PASSWORD" >> keystore.properties
+          echo "keyAlias=$KEY_ALIAS" >> keystore.properties
+          echo "keyPassword=$KEY_PASSWORD" >> keystore.properties
+          
+      - name: 🏗️ Build Release APK
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        
+      - name: 🏗️ Build Release AAB
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
+        
+      - name: 📝 Extract version from tag
+        id: version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          
+      - name: 📦 Upload Release APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-apk-v${{ steps.version.outputs.version }}
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 90
+          
+      - name: 📦 Upload Release AAB
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-aab-v${{ steps.version.outputs.version }}
+          path: app/build/outputs/bundle/release/*.aab
+          retention-days: 90
+          
+      - name: 📋 Generate build summary
+        run: |
+          echo "### 🎉 Release Build Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 📦 Build Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Type | File | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
+          for apk in app/build/outputs/apk/release/*.apk; do
+            if [ -f "$apk" ]; then
+              size=$(du -h "$apk" | cut -f1)
+              name=$(basename "$apk")
+              echo "| APK | $name | $size |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          for aab in app/build/outputs/bundle/release/*.aab; do
+            if [ -f "$aab" ]; then
+              size=$(du -h "$aab" | cut -f1)
+              name=$(basename "$aab")
+              echo "| AAB | $name | $size |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          
+      - name: 🧹 Cleanup keystore
+        if: always()
+        run: |
+          rm -f $GITHUB_WORKSPACE/keystore.jks
+          rm -f keystore.properties
+
+  # ============================================================================
+  # Create GitHub Release Job
+  # ============================================================================
+  create-github-release:
+    name: 📦 Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-release
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📝 Extract version from tag
+        id: version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          
+      - name: 📦 Download APK artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: release-apk-v${{ steps.version.outputs.version }}
+          path: artifacts/apk/
+          
+      - name: 📦 Download AAB artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: release-aab-v${{ steps.version.outputs.version }}
+          path: artifacts/aab/
+          
+      - name: 📝 Generate release notes
+        id: release_notes
+        run: |
+          cat << EOF > release_notes.md
+          ## 🎉 PlayOnePro2 ${{ steps.version.outputs.tag }}
+          
+          ### ✨ What's New
+          
+          - Version ${{ steps.version.outputs.version }} release
+          - Check commit history for detailed changes
+          
+          ### 📦 Downloads
+          
+          - **APK**: For direct installation on Android devices
+          - **AAB**: For Google Play Store deployment
+          
+          ### 🛡️ Security
+          
+          - All binaries are signed with official release keys
+          - Verify SHA-256 checksums before installation
+          
+          ---
+          
+          Built with ❤️ by the PlayOnePro2 team
+          EOF
+          
+      - name: 🏷️ Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/apk/*.apk
+            artifacts/aab/*.aab
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================================
+  # Deploy to Google Play Store Job (Optional)
+  # ============================================================================
+  deploy-to-playstore:
+    name: 📱 Deploy to Play Store
+    runs-on: ubuntu-latest
+    needs: build-release
+    if: ${{ secrets.PLAY_STORE_JSON_KEY != '' }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📝 Extract version from tag
+        id: version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+      - name: 📦 Download AAB artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: release-aab-v${{ steps.version.outputs.version }}
+          path: artifacts/aab/
+          
+      - name: 📱 Upload to Google Play (Internal Track)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON_KEY }}
+          packageName: com.playonepro.app
+          releaseFiles: artifacts/aab/*.aab
+          track: internal
+          status: completed
+          inAppUpdatePriority: 2
+          whatsNewDirectory: whatsnew/
+          
+      - name: ✅ Deployment successful
+        run: |
+          echo "### 🎉 Play Store Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Track:** Internal Testing" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The app is now available for internal testing on Google Play Console." >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # Release Status Job
+  # ============================================================================
+  release-status:
+    name: ✅ Release Status
+    runs-on: ubuntu-latest
+    needs: [build-release, create-github-release]
+    if: always()
+    
+    steps:
+      - name: ✅ Release successful
+        if: ${{ needs.build-release.result == 'success' && needs.create-github-release.result == 'success' }}
+        run: |
+          echo "✅ Release pipeline completed successfully!"
+          echo "🎉 Version ${GITHUB_REF#refs/tags/} is now available"
+          
+      - name: ❌ Release failed
+        if: ${{ needs.build-release.result != 'success' || needs.create-github-release.result != 'success' }}
+        run: |
+          echo "❌ Release pipeline failed!"
+          echo "Build Release: ${{ needs.build-release.result }}"
+          echo "GitHub Release: ${{ needs.create-github-release.result }}"
+          exit 1
