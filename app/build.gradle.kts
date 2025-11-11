@@ -69,6 +69,8 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.50")
 
     // Firebase Remote Config
+    implementation("com.google.firebase:firebase-config-ktx:21.6.1")
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-config-ktx")
     testImplementation("junit:junit:4.13.2")
