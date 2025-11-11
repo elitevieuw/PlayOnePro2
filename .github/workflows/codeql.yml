@@ -17,11 +17,6 @@ jobs:
       contents: read
       security-events: write
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ['java', 'kotlin']
-
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -31,23 +26,20 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: 🔐 Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
-          languages: java
+          languages: java-kotlin
           queries: security-and-quality
 
-      - name: 🔐 Autobuild
-        uses: github/codeql-action/autobuild@v2
+      - name: 🔨 Build with Gradle
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: 📊 Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:java"
-
-      - name: 📤 Upload SARIF to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          category: security-scan
+          category: "/language:java-kotlin"
