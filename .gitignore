@@ -1,15 +1,118 @@
-*.iml
+# Gradle
+.gradle/
 .gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
+*.gradle
+!gradle-wrapper.jar
+gradle-app.setting
+!gradle-wrapper.properties
+build/
+.gradle
+build/
+
+# Android Studio
+.idea/
+*.iml
+*.apk
+*.aar
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Output files
 /captures
 .externalNativeBuild
+.cxx/
 .cxx
+*.so
+
+# Local configuration files
 local.properties
+localhost.properties
+
+# IDE Specific Directories
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/tasks.xml
+.idea/compiler.xml
+.idea/dictionaries
+.idea/encodings.xml
+.idea/scopes
+.idea/gradle.xml
+.idea/inspectionProfiles
+.idea/misc.xml
+.idea/vcs.xml
+.idea/uiDesigner.xml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+*.lnk
+
+# General
+*.jks
+*.keystore
+*.log
+*.ipr
+.workspace
+proguard
+.project
+.classpath
+.c9/
+*.launch
+.buildpath
+.pydevproject
+.sproject
+.properties
+.target/
+.vscode/
+.vscode
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
+
+# Signing Keys (sensitive!)
+*.jks
+*.keystore
+signing.properties
+key.properties
+
+# Generated files
+generateSources/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Backup files
+*.swp
+*.swo
+*~
+.#*
+
+# Test results
+*.trx
+*.coverage
+.coverage
+htmlcov/
+.nyc_output/
+
+# Lint Reports
+lint-results*.xml
+lint-results*.html
